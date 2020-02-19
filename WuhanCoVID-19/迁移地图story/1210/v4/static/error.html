@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+	<head>
+		<link href="https://fonts.googleapis.com/css?family=Roboto+Slab:300,700" rel="stylesheet" type="text/css">
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Can not display</title>
+		<style type="text/css">
+			* { box-sizing: border-box; }
+			html { height: 100%; }
+			body { margin: 0; padding: 0; font-family: 'Roboto Slab', sans-serif; font-size: 15px; height: 100%; background-image: url("fallback.jpg"); background-size: cover; background-position: 50% 50%; }
+			h1 { font-size: 18px; font-weight: 700; }
+			#text { background: rgba(255,255,255,0.925); padding: 10px 20px; border-radius: 10px; transform: translateY(-50%); position: absolute; top: 50%; right: left: 0px; width: 50%; margin: 0 25%; box-shadow: 3px 3px 5px rgba(0,0,0,0.1); }
+			a:link, a:visited { color: #005689; text-decoration: none; border-bottom: 0.0625rem solid #dcdcdc; }
+			a:hover, a:active { border-color: #6e99b3; }
+			@media screen and (max-width: 600px) {
+				#text { width: 80%; margin: 0 10%; }
+			}
+		</style>
+	</head>
+	<body>
+		<div id="text">
+			<h1>Modern web browser required!</h1>
+			<p>This content uses JavaScript and WebGL features that are not supported or blocked by your web browser or device. Please try with an up-to-date version of Chrome, Edge, Safari or Firefox.</p>
+		</div>
+	</body>
+</html>

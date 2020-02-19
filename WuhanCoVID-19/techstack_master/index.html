@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>2020新冠肺炎疫情</title>
+	<style>
+		html, body {
+			padding: 0;
+			margin: 0;
+			box-sizing: border-box;
+			font-family: Helvetica, Calibri, Roboto, Open Sans, sans-serif
+			-webkit-backface-visibility: hidden;
+      background: #FFFFFF;
+		}
+		* {
+			box-sizing: inherit;
+		}
+		h1 {
+			
+      		}
+		svg {
+			margin:auto;
+			display:block;
+      
+		}
+
+		.circle-overlay {
+			font-size: 16px;
+			border-radius: 50%;
+			position: absolute;
+			overflow: hidden;
+			/*it's buggy with the foreignObject background right now*/
+			/*background-color: rgba(255,255,255,0.5);*/
+		}
+		.circle-overlay__inner {
+			text-align: center;
+      		font-size: 1rem;
+      		font-weight: bold;
+			width: 100%;
+			height: 100%;
+		}
+
+		.hidden {
+			display: none;
+		}
+    .node-icon {
+      -webkit-clip-path: circle(30% at 50% 50%)
+    }
+		.node-icon--faded {
+			opacity: 0.3;
+      color: white;
+      margin-top: 100px;
+		}
+	</style>
+</head>
+<body>
+	<h1 style="margin-left:5%;font-size:20px;margin:10px">2020新冠肺炎疫情&emsp;<span style="font-size:15px;">2020-02-17</span></h1>
+
+	<svg width="100%" height="700" font-family="sans-serif" font-size="10" text-anchor="middle"></svg>
+
+	<script src="js/d3.min.js"></script>
+  <script src="js/d3-legend.min.js"></script>
+	
+	<script>
+		// Based loosely from this D3 bubble graph https://bl.ocks.org/mbostock/4063269
+		// And this Forced directed diagram https://bl.ocks.org/mbostock/4062045
+		let data = [{'cat': '上海市',
+  'value': 9.113742166049189,
+  'name': '上海市',
+  'icon': './img/上海市.jpg',
+  'desc': '确诊人数:  277<br><br>治愈人数:  25<br><br>死亡人数:  1'},
+ {'cat': '云南省',
+  'value': 8.087462841250339,
+  'name': '云南省',
+  'icon': './img/云南省.jpg',
+  'desc': '确诊人数:  136<br><br>治愈人数:  13<br><br>死亡人数:  0'},
+ {'cat': '内蒙古自治区',
+  'value': 6.643856189774724,
+  'name': '内蒙古自治区',
+  'icon': './img/内蒙古自治区.jpg',
+  'desc': '确诊人数:  50<br><br>治愈人数:  5<br><br>死亡人数:  0'},
+ {'cat': '北京市',
+  'value': 9.214319120800766,
+  'name': '北京市',
+  'icon': './img/北京市.jpg',
+  'desc': '确诊人数:  297<br><br>治愈人数:  33<br><br>死亡人数:  1'},
+ {'cat': '吉林省',
+  'value': 7.022367813028454,
+  'name': '吉林省',
+  'icon': './img/吉林省.jpg',
+  'desc': '确诊人数:  65<br><br>治愈人数:  4<br><br>死亡人数:  1'},
+ {'cat': '四川省',
+  'value': 9.426264754702098,
+  'name': '四川省',
+  'icon': './img/四川省.jpg',
+  'desc': '确诊人数:  344<br><br>治愈人数:  42<br><br>死亡人数:  1'},
+ {'cat': '天津市',
+  'value': 7.339850002884625,
+  'name': '天津市',
+  'icon': './img/天津市.jpg',
+  'desc': '确诊人数:  81<br><br>治愈人数:  2<br><br>死亡人数:  1'},
+ {'cat': '宁夏回族自治区',
+  'value': 6.426264754702098,
+  'name': '宁夏回族自治区',
+  'icon': './img/宁夏回族自治区.jpg',
+  'desc': '确诊人数:  43<br><br>治愈人数:  5<br><br>死亡人数:  0'},
+ {'cat': '安徽省',
+  'value': 10.377210530388552,
+  'name': '安徽省',
+  'icon': './img/安徽省.jpg',
+  'desc': '确诊人数:  665<br><br>治愈人数:  47<br><br>死亡人数:  0'},
+ {'cat': '山东省',
+  'value': 9.592457037268082,
+  'name': '山东省',
+  'icon': './img/山东省.jpg',
+  'desc': '确诊人数:  386<br><br>治愈人数:  37<br><br>死亡人数:  0'},
+ {'cat': '山西省',
+  'value': 7.584962500721156,
+  'name': '山西省',
+  'icon': './img/山西省.jpg',
+  'desc': '确诊人数:  96<br><br>治愈人数:  15<br><br>死亡人数:  0'},
+ {'cat': '广东省',
+  'value': 11.014020470314936,
+  'name': '广东省',
+  'icon': './img/广东省.jpg',
+  'desc': '确诊人数:  1034<br><br>治愈人数:  88<br><br>死亡人数:  1'},
+ {'cat': '广西壮族自治区',
+  'value': 8.4178525148859,
+  'name': '广西壮族自治区',
+  'icon': './img/广西壮族自治区.jpg',
+  'desc': '确诊人数:  171<br><br>治愈人数:  17<br><br>死亡人数:  0'},
+ {'cat': '新疆维吾尔自治区',
+  'value': 6.285402218862249,
+  'name': '新疆维吾尔自治区',
+  'icon': './img/新疆维吾尔自治区.jpg',
+  'desc': '确诊人数:  39<br><br>治愈人数:  0<br><br>死亡人数:  0'},
+ {'cat': '江苏省',
+  'value': 9.672425341971495,
+  'name': '江苏省',
+  'icon': './img/江苏省.jpg',
+  'desc': '确诊人数:  408<br><br>治愈人数:  43<br><br>死亡人数:  0'},
+ {'cat': '江西省',
+  'value': 10.36850646150769,
+  'name': '江西省',
+  'icon': './img/江西省.jpg',
+  'desc': '确诊人数:  661<br><br>治愈人数:  45<br><br>死亡人数:  0'},
+ {'cat': '河北省',
+  'value': 8.426264754702098,
+  'name': '河北省',
+  'icon': './img/河北省.jpg',
+  'desc': '确诊人数:  172<br><br>治愈人数:  22<br><br>死亡人数:  1'},
+ {'cat': '河南省',
+  'value': 10.83605035505807,
+  'name': '河南省',
+  'icon': './img/河南省.jpg',
+  'desc': '确诊人数:  914<br><br>治愈人数:  86<br><br>死亡人数:  3'},
+ {'cat': '浙江省',
+  'value': 10.974414589805528,
+  'name': '浙江省',
+  'icon': './img/浙江省.jpg',
+  'desc': '确诊人数:  1006<br><br>治愈人数:  123<br><br>死亡人数:  0'},
+ {'cat': '海南省',
+  'value': 7.870364719583405,
+  'name': '海南省',
+  'icon': './img/海南省.jpg',
+  'desc': '确诊人数:  117<br><br>治愈人数:  10<br><br>死亡人数:  2'},
+ {'cat': '湖北省',
+  'value': 15.43254190038826,
+  'name': '湖北省',
+  'icon': './img/湖北省.jpg',
+  'desc': '确诊人数:  22112<br><br>治愈人数:  867<br><br>死亡人数:  618'},
+ {'cat': '湖南省',
+  'value': 10.592457037268082,
+  'name': '湖南省',
+  'icon': './img/湖南省.jpg',
+  'desc': '确诊人数:  772<br><br>治愈人数:  112<br><br>死亡人数:  0'},
+ {'cat': '甘肃省',
+  'value': 7.066089190457772,
+  'name': '甘肃省',
+  'icon': './img/甘肃省.jpg',
+  'desc': '确诊人数:  67<br><br>治愈人数:  9<br><br>死亡人数:  0'},
+ {'cat': '福建省',
+  'value': 8.807354922057604,
+  'name': '福建省',
+  'icon': './img/福建省.jpg',
+  'desc': '确诊人数:  224<br><br>治愈人数:  20<br><br>死亡人数:  0'},
+ {'cat': '西藏自治区',
+  'value': 1.0,
+  'name': '西藏自治区',
+  'icon': './img/西藏自治区.jpg',
+  'desc': '确诊人数:  1<br><br>治愈人数:  0<br><br>死亡人数:  0'},
+ {'cat': '贵州省',
+  'value': 7.339850002884625,
+  'name': '贵州省',
+  'icon': './img/贵州省.jpg',
+  'desc': '确诊人数:  81<br><br>治愈人数:  6<br><br>死亡人数:  1'},
+ {'cat': '辽宁省',
+  'value': 7.584962500721156,
+  'name': '辽宁省',
+  'icon': './img/辽宁省.jpg',
+  'desc': '确诊人数:  96<br><br>治愈人数:  7<br><br>死亡人数:  0'},
+ {'cat': '重庆市',
+  'value': 9.696967526234287,
+  'name': '重庆市',
+  'icon': './img/重庆市.jpg',
+  'desc': '确诊人数:  415<br><br>治愈人数:  31<br><br>死亡人数:  2'},
+ {'cat': '陕西省',
+  'value': 8.523561956057012,
+  'name': '陕西省',
+  'icon': './img/陕西省.jpg',
+  'desc': '确诊人数:  184<br><br>治愈人数:  17<br><br>死亡人数:  0'},
+ {'cat': '青海省',
+  'value': 5.169925001442312,
+  'name': '青海省',
+  'icon': './img/青海省.jpg',
+  'desc': '确诊人数:  18<br><br>治愈人数:  3<br><br>死亡人数:  0'},
+ {'cat': '黑龙江省',
+  'value': 9.113742166049189,
+  'name': '黑龙江省',
+  'icon': './img/黑龙江省.jpg',
+  'desc': '确诊人数:  277<br><br>治愈人数:  12<br><br>死亡人数:  3'},
+ {'name': '加拿大',
+  'cat': '加拿大',
+  'icon': './img/加拿大.jpg',
+  'value': 2.584962500721156,
+  'desc': '国家/地区:  加拿大<br><br>确诊人数:  5<br><br>疑似人数:  0<br><br>治愈人数:  2<br><br>死亡人数:  0'},
+ {'name': '印度',
+  'cat': '印度',
+  'icon': './img/印度.jpg',
+  'value': 1.0,
+  'desc': '国家/地区:  印度<br><br>确诊人数:  3<br><br>疑似人数:  0<br><br>治愈人数:  0<br><br>死亡人数:  0'},
+ {'name': '尼泊尔',
+  'cat': '尼泊尔',
+  'icon': './img/尼泊尔.jpg',
+  'value': 1.0,
+  'desc': '国家/地区:  尼泊尔<br><br>确诊人数:  1<br><br>疑似人数:  0<br><br>治愈人数:  0<br><br>死亡人数:  0'},
+ {'name': '德国',
+  'cat': '德国',
+  'icon': './img/德国.jpg',
+  'value': 3.0,
+  'desc': '国家/地区:  德国<br><br>确诊人数:  13<br><br>疑似人数:  0<br><br>治愈人数:  0<br><br>死亡人数:  0'},
+ {'name': '斯里兰卡',
+  'cat': '斯里兰卡',
+  'icon': './img/斯里兰卡.jpg',
+  'value': 1.0,
+  'desc': '国家/地区:  斯里兰卡<br><br>确诊人数:  1<br><br>疑似人数:  0<br><br>治愈人数:  0<br><br>死亡人数:  0'},
+ {'name': '新加坡',
+  'cat': '新加坡',
+  'icon': './img/新加坡.jpg',
+  'value': 4.321928094887363,
+  'desc': '国家/地区:  新加坡<br><br>确诊人数:  33<br><br>疑似人数:  0<br><br>治愈人数:  2<br><br>死亡人数:  0'},
+ {'name': '日本',
+  'cat': '日本',
+  'icon': './img/日本.jpg',
+  'value': 4.459431618637298,
+  'desc': '国家/地区:  日本<br><br>确诊人数:  86<br><br>疑似人数:  0<br><br>治愈人数:  1<br><br>死亡人数:  0'},
+ {'name': '法国',
+  'cat': '法国',
+  'icon': './img/法国.jpg',
+  'value': 3.321928094887362,
+  'desc': '国家/地区:  法国<br><br>确诊人数:  6<br><br>疑似人数:  0<br><br>治愈人数:  0<br><br>死亡人数:  0'},
+ {'name': '泰国',
+  'cat': '泰国',
+  'icon': './img/泰国.jpg',
+  'value': 4.807354922057604,
+  'desc': '国家/地区:  泰国<br><br>确诊人数:  25<br><br>疑似人数:  0<br><br>治愈人数:  8<br><br>死亡人数:  0'},
+ {'name': '澳大利亚',
+  'cat': '澳大利亚',
+  'icon': './img/澳大利亚.jpg',
+  'value': 4.0,
+  'desc': '国家/地区:  澳大利亚<br><br>确诊人数:  15<br><br>疑似人数:  0<br><br>治愈人数:  3<br><br>死亡人数:  0'},
+ {'name': '美国',
+  'cat': '美国',
+  'icon': './img/美国.jpg',
+  'value': 3.321928094887362,
+  'desc': '国家/地区:  美国<br><br>确诊人数:  12<br><br>疑似人数:  0<br><br>治愈人数:  1<br><br>死亡人数:  0'},
+ {'name': '芬兰',
+  'cat': '芬兰',
+  'icon': './img/芬兰.jpg',
+  'value': 1.0,
+  'desc': '国家/地区:  芬兰<br><br>确诊人数:  1<br><br>疑似人数:  0<br><br>治愈人数:  1<br><br>死亡人数:  0'},
+ {'name': '菲律宾',
+  'cat': '菲律宾',
+  'icon': './img/菲律宾.jpg',
+  'value': 1.0,
+  'desc': '国家/地区:  菲律宾<br><br>确诊人数:  3<br><br>疑似人数:  0<br><br>治愈人数:  0<br><br>死亡人数:  1'},
+ {'name': '越南',
+  'cat': '越南',
+  'icon': './img/越南.jpg',
+  'value': 2.0,
+  'desc': '国家/地区:  越南<br><br>确诊人数:  12<br><br>疑似人数:  0<br><br>治愈人数:  3<br><br>死亡人数:  0'},
+ {'name': '阿联酋',
+  'cat': '阿联酋',
+  'icon': './img/阿联酋.jpg',
+  'value': 3.0,
+  'desc': '国家/地区:  阿联酋<br><br>确诊人数:  5<br><br>疑似人数:  0<br><br>治愈人数:  0<br><br>死亡人数:  0'},
+ {'name': '韩国',
+  'cat': '韩国',
+  'icon': './img/韩国.jpg',
+  'value': 3.584962500721156,
+  'desc': '国家/地区:  韩国<br><br>确诊人数:  24<br><br>疑似人数:  0<br><br>治愈人数:  1<br><br>死亡人数:  0'},
+ {'name': '马来西亚',
+  'cat': '马来西亚',
+  'icon': './img/马来西亚.jpg',
+  'value': 4.0,
+  'desc': '国家/地区:  马来西亚<br><br>确诊人数:  15<br><br>疑似人数:  0<br><br>治愈人数:  0<br><br>死亡人数:  0'}];
+	</script>
+
+	<script>
+		let svg = d3.select('svg');
+		let width = document.body.clientWidth; // get width in pixels
+		let height = +svg.attr('height');
+		let centerX = width * 0.5;
+		let centerY = height * 0.5;
+		let strength = 0.05;
+		let focusedNode;
+
+		let format = d3.format(',d');
+
+		let scaleColor = d3.scaleOrdinal(d3.schemeCategory20);
+
+		// use pack to calculate radius of the circle
+		let pack = d3.pack()
+			.size([width , height ])
+			.padding(1.5);
+
+		let forceCollide = d3.forceCollide(d => d.r + 1);
+
+		// use the force
+		let simulation = d3.forceSimulation()
+			// .force('link', d3.forceLink().id(d => d.id))
+			.force('charge', d3.forceManyBody())
+			.force('collide', forceCollide)
+			// .force('center', d3.forceCenter(centerX, centerY))
+			.force('x', d3.forceX(centerX ).strength(strength))
+			.force('y', d3.forceY(centerY ).strength(strength));
+
+		// reduce number of circles on mobile screen due to slow computation
+		if ('matchMedia' in window && window.matchMedia('(max-device-width: 767px)').matches) {
+			data = data.filter(el => {
+				return el.value >= 50;
+			});
+		}
+
+		let root = d3.hierarchy({ children: data })
+			.sum(d => d.value);
+
+		// we use pack() to automatically calculate radius conveniently only
+		// and get only the leaves
+		let nodes = pack(root).leaves().map(node => {
+			console.log('node:', node.x, (node.x - centerX) * 2);
+			const data = node.data;
+			return {
+				x: centerX + (node.x - centerX) * 3, // magnify start position to have transition to center movement
+				y: centerY + (node.y - centerY) * 3,
+				r: 0, // for tweening
+				radius: node.r, //original radius
+				id: data.cat + '.' + (data.name.replace(/\s/g, '-')),
+				cat: data.cat,
+				name: data.name,
+				value: data.value,
+				icon: data.icon,
+				desc: data.desc,
+			}
+		});
+		simulation.nodes(nodes).on('tick', ticked);
+
+		svg.style('background-color', '#FFFFFF');
+		let node = svg.selectAll('.node')
+			.data(nodes)
+			.enter().append('g')
+			.attr('class', 'node')
+			.call(d3.drag()
+				.on('start', (d) => {
+					if (!d3.event.active) simulation.alphaTarget(0.2).restart();
+					d.fx = d.x;
+					d.fy = d.y;
+				})
+				.on('drag', (d) => {
+					d.fx = d3.event.x;
+					d.fy = d3.event.y;
+				})
+				.on('end', (d) => {
+					if (!d3.event.active) simulation.alphaTarget(0);
+					d.fx = null;
+					d.fy = null;
+				}));
+
+		node.append('circle')
+			.attr('id', d => d.id)
+			.attr('r', 0)
+			.style('fill', d => scaleColor(d.cat))
+			.transition().duration(1000).ease(d3.easeElasticOut)
+				.tween('circleIn', (d) => {
+					let i = d3.interpolateNumber(0, d.radius);
+					return (t) => {
+						d.r = i(t);
+						simulation.force('collide', forceCollide);
+					}
+				})
+
+		node.append('clipPath')
+			.attr('id', d => `clip-${d.id}`)
+			.append('use')
+			.attr('xlink:href', d => `#${d.id}`);
+
+		// display text as circle icon
+    node//.filter(d => String(d.icon).includes('img/'))
+      .append('image')
+      .classed('node-icon', true)
+      .attr('clip-path', d => `url(#clip-${d.id})`)
+      .attr('xlink:href', d => d.icon)
+      .attr('x', d => - d.radius*1.6 )
+      .attr('y', d => - d.radius*1.6 )
+      .attr('height', d => d.radius * 3.2 )
+      .attr('width', d => d.radius * 3.2 )
+/*		
+    node//.filter(d => !String(d.icon).includes('img/'))
+			.append('text')
+      .style('font-weight','bold')
+      
+			.classed('node-icon', true)
+			.attr('clip-path', d => `url(#clip-${d.id})`)
+			.selectAll('tspan')
+			.data(d => d.name.split(';'))
+			.enter()
+				.append('tspan')
+        .style('color','#FFFFFF')
+				.attr('x', 0)
+				.attr('y', (d, i, nodes) => (13 + (i - nodes.length / 2 - 0.5) * 10))
+				.text(name => name);
+*/
+		// display image as circle icon
+
+
+		node.append('title')
+			.text(d => (d.cat + '::' + d.name + '\n' + format(d.value)));
+
+		let legendOrdinal = d3.legendColor()
+			.scale(scaleColor)
+			.shape('circle');
+
+/*
+		let legend = svg.append('g')
+			.classed('legend-color', true)
+			.attr('text-anchor', 'start')
+			.attr('transform','translate(20,30)')
+			.style('font-size','12px')
+			.call(legendOrdinal);
+
+		let sizeScale = d3.scaleOrdinal()
+  			.domain(['less use', 'more use'])
+  			.range([5, 10] );
+
+		let legendSize = d3.legendSize()
+			.scale(sizeScale)
+			.shape('circle')
+			.shapePadding(10)
+			.labelAlign('end');
+
+		let legend2 = svg.append('g')
+			.classed('legend-size', true)
+			.attr('text-anchor', 'start')
+			.attr('transform', 'translate(150, 25)')
+			.style('font-size', '12px')
+			.call(legendSize);
+*/
+
+		/*
+		<foreignObject class="circle-overlay" x="10" y="10" width="100" height="150">
+			<div class="circle-overlay__inner">
+				<h2 class="circle-overlay__title">ReactJS</h2>
+				<p class="circle-overlay__body">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ullam, sunt, aspernatur. Autem repudiandae, laboriosam. Nulla quidem nihil aperiam dolorem repellendus pariatur, quaerat sed eligendi inventore ipsa natus fugiat soluta doloremque!</p>
+			</div>
+		</foreignObject>
+		*/
+		let infoBox = node.append('foreignObject')
+			.classed('circle-overlay hidden', true)
+			.attr('x', -350 * 0.5 * 0.8)
+			.attr('y', -350 * 0.5 * 0.8)
+			.attr('height', 350 * 0.8)
+			.attr('width', 350 * 0.8)
+				.append('xhtml:div')
+				.classed('circle-overlay__inner', true);
+
+		infoBox.append('h2')
+			.classed('circle-overlay__title', true)
+			.text(d => d.name);
+
+		infoBox.append('p')
+			.classed('circle-overlay__body', true)
+      .style('text-align','left')
+      .style('margin-left','50px')
+      .style('line-height','95%')
+			.html(d => d.desc);
+
+
+		node.on('click', (currentNode) => {
+			d3.event.stopPropagation();
+			console.log('currentNode', currentNode);
+			let currentTarget = d3.event.currentTarget; // the <g> el
+
+			if (currentNode === focusedNode) {
+				// no focusedNode or same focused node is clicked
+				return;
+			}
+			let lastNode = focusedNode;
+			focusedNode = currentNode;
+
+			simulation.alphaTarget(0.2).restart();
+			// hide all circle-overlay
+			d3.selectAll('.circle-overlay').classed('hidden', true);
+			d3.selectAll('.node-icon')
+        .classed('node-icon--faded', false)
+
+			// don't fix last node to center anymore
+			if (lastNode) {
+				lastNode.fx = null;
+				lastNode.fy = null;
+				node.filter((d, i) => i === lastNode.index)
+					.transition().duration(2000).ease(d3.easePolyOut)
+					.tween('circleOut', () => {
+						let irl = d3.interpolateNumber(lastNode.r, lastNode.radius);
+						return (t) => {
+							lastNode.r = irl(t);
+						}
+					})
+					.on('interrupt', () => {
+						lastNode.r = lastNode.radius;
+					});
+			}
+
+			// if (!d3.event.active) simulation.alphaTarget(0.5).restart();
+
+			d3.transition().duration(1000).ease(d3.easePolyOut)
+				.tween('moveIn', () => {
+					console.log('tweenMoveIn', currentNode);
+					let ix = d3.interpolateNumber(currentNode.x, centerX);
+					let iy = d3.interpolateNumber(currentNode.y, centerY);
+					let ir = d3.interpolateNumber(currentNode.r, centerY * 0.5);
+					return function (t) {
+						// console.log('i', ix(t), iy(t));
+						currentNode.fx = ix(t);
+						currentNode.fy = iy(t);
+						currentNode.r = ir(t);
+						simulation.force('collide', forceCollide);
+					};
+				})
+				.on('end', () => {
+					simulation.alphaTarget(0);
+					let $currentGroup = d3.select(currentTarget);
+					$currentGroup.select('.circle-overlay')
+						.classed('hidden', false);
+					$currentGroup.select('.node-icon')
+						.classed('node-icon--faded', true);
+
+				})
+				.on('interrupt', () => {
+					console.log('move interrupt', currentNode);
+					currentNode.fx = null;
+					currentNode.fy = null;
+					simulation.alphaTarget(0);
+				});
+
+		});
+
+		// blur
+		d3.select(document).on('click', () => {
+			let target = d3.event.target;
+			// check if click on document but not on the circle overlay
+			if (!target.closest('#circle-overlay') && focusedNode) {
+				focusedNode.fx = null;
+				focusedNode.fy = null;
+				simulation.alphaTarget(0.2).restart();
+				d3.transition().duration(1000).ease(d3.easePolyOut)
+					.tween('moveOut', function () {
+						console.log('tweenMoveOut', focusedNode);
+						let ir = d3.interpolateNumber(focusedNode.r, focusedNode.radius);
+						return function (t) {
+							focusedNode.r = ir(t);
+							simulation.force('collide', forceCollide);
+						};
+					})
+					.on('end', () => {
+						focusedNode = null;
+						simulation.alphaTarget(0);
+					})
+					.on('interrupt', () => {
+						simulation.alphaTarget(0);
+					});
+
+				// hide all circle-overlay
+				d3.selectAll('.circle-overlay').classed('hidden', true);
+				d3.selectAll('.node-icon').classed('node-icon--faded', false);
+			}
+		});
+
+		function ticked() {
+			node
+				.attr('transform', d => `translate(${d.x},${d.y})`)
+				.select('circle')
+					.attr('r', d => d.r);
+		}
+	</script>
+</body>
+</html>
